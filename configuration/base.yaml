@@ -1,5 +1,5 @@
-# configuration.yaml
-application_port: 4000
+application:
+  port: 4000
 database:
   host: "localhost"
   port: 5432
