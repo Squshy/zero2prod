@@ -1,15 +1,25 @@
-# Use the latest Rust stable release as base image
-FROM rust:1.61.0 AS builder
+FROM lukemathwalker/cargo-chef:latest-rust-1.59.0 as chef
 
-# Switch our working directory to `app` (same as `cd app)
-# The `app` folder will be created for us by Docker in case 
-# it does not exist already.
 WORKDIR /app
 
 # Install required system dependencies for our linking config
 RUN apt update && apt install lld clang -y
 
-# Copy all files from our working environment to our Docker image
+FROM chef as planner
+COPY . .
+
+# Compute a lock-like file for our project
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef as builder
+COPY --from=planner /app/recipe.json recipe.json
+
+# Build prohect dependencies, not the application
+RUN cargo chef cook --release --recipe-path recipe.json
+
+# Up to this point, if the dependency tree stays the same,
+# all layers should be cached.
+
 COPY . .
 
 # sqlx env var to use generated json data to check
@@ -18,7 +28,7 @@ ENV SQLX_OFFLINE true
 
 # Build the binary
 # Use release profile to make it speedy :)
-RUN cargo build --release
+RUN cargo build --release --bin zero2prod
 
 # Runtime stage
 FROM debian:bullseye-slim AS runtime
@@ -40,10 +50,7 @@ COPY --from=builder /app/target/release/zero2prod zero2prod
 # We need config file at runtime
 COPY configuration configuration
 
-# Set the APP_ENVIRONMENT to production
-# Really doesn't need explaining but everything else
-# had comments and this would have been lonely
 ENV APP_ENVIRONMENT production
 
 # When `docker run` is executed, launch the binary
-ENTRYPOINT [ "./target/release/zero2prod" ]
+ENTRYPOINT [ "./zero2prod" ]
