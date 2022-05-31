@@ -1,0 +1,33 @@
+name: zero2prod
+region: nyc1
+services:
+  - name: zero2prod
+    # Relative to repo root
+    dockerfile_path: Dockerfile
+    source_dir: .
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: Squshy/zero2prod
+    # Active probe used by DigitalOcean to ensure app is healthy
+    health_check:
+      http_path: /health_check
+    # Port app will listen for incoming requests
+    # Should match in configuration/production.yaml file
+    http_port: 4000
+    # for actual prod workloads go for at least 2
+    # we a lil broke so only one for now
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    # All incoming requests routed to our app
+    routes:
+      - path: /
+databases:
+  - engine: PG
+    # DB name
+    name: newsletter
+    # tiny bill #brokeboys
+    num_nodes: 1
+    size: db-s-dev-database
+    # Postgres version
+    version: "12"
