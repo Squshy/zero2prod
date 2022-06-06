@@ -15,7 +15,11 @@ use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 /// We need to explicitly call out that the returned subscriber is
 /// `Send` and `Sync` to make it possible to pass it to
 /// `init_subscriber` later on.
-pub fn get_subscriber<Sink>(name: String, env_filter: String, sink: Sink) -> impl Subscriber + Send + Sync
+pub fn get_subscriber<Sink>(
+    name: String,
+    env_filter: String,
+    sink: Sink,
+) -> impl Subscriber + Send + Sync
 where
     // This syntax is a higher ranked trait bound (HRTB)
     // It basically means that Sink implements the `MakeWriter`
@@ -29,8 +33,7 @@ where
     let env_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
     let formatting_layer = BunyanFormattingLayer::new(
-        name,
-        // Output the formatted spans to stdout
+        name, // Output the formatted spans to stdout
         sink,
     );
 

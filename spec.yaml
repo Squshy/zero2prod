@@ -7,7 +7,7 @@ services:
     source_dir: .
     github:
       branch: main
-      deploy_on_push: true
+      # deploy_on_push: true
       repo: Squshy/zero2prod
     # Active probe used by DigitalOcean to ensure app is healthy
     health_check:
