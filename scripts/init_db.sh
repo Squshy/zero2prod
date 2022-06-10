@@ -38,7 +38,7 @@ then
         # Increased maximum number of connections for testing purposes
 fi
 
-# Ping Postgres until it isready to accept commands
+# Ping Postgres until it is ready to accept commands
 export PGPASSWORD="${DB_PASSWORD}"
 until psql -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q'; do
     >&2 echo "Postgres is still unavailable - sleeping"
