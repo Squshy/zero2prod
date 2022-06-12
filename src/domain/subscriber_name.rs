@@ -4,10 +4,6 @@ use unicode_segmentation::UnicodeSegmentation;
 pub struct SubscriberName(String);
 
 impl SubscriberName {
-    pub fn as_ref(&self) -> &str {
-        &self.0
-    }
-
     /// Returns an instance of `SubscriberName` if the input satisfies all
     /// our validation constraints on subscriber names.
     /// It panics otherwise.
