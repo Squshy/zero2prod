@@ -10,3 +10,4 @@ email_client:
   base_url: "localhost"
   sender_email: "test@gmail.ca"
   authorization_token: "mamajamba123"
+  timeout_milliseconds: 10000
