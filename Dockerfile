@@ -14,7 +14,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef as builder
 COPY --from=planner /app/recipe.json recipe.json
 
-# Build prohect dependencies, not the application
+# Build project dependencies, not the application
 RUN cargo chef cook --release --recipe-path recipe.json
 
 # Up to this point, if the dependency tree stays the same,

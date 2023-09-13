@@ -7,7 +7,7 @@ database:
   password: "password"
   database_name: "newsletter"
 email_client:
-  base_url: "localhost"
-  sender_email: "test@gmail.ca"
+  base_url: "127.0.0.1"
+  sender_email: "test@gmail.com"
   authorization_token: "mamajamba123"
   timeout_milliseconds: 10000
