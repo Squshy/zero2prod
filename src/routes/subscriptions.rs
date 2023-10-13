@@ -9,6 +9,21 @@ use rand::{thread_rng, Rng};
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
+fn error_chain_fmt(
+    e: &impl std::error::Error,
+    f: &mut std::fmt::Formatter<'_>,
+) -> std::fmt::Result {
+    writeln!(f, "{}\n", e)?;
+    let mut current = e.source();
+
+    while let Some(cause) = current {
+        writeln!(f, "Caused by:\n\t{}", cause)?;
+        current = cause.source();
+    }
+
+    Ok(())
+}
+
 #[derive(serde::Deserialize)]
 pub struct FormData {
     email: String,
@@ -50,72 +65,31 @@ impl std::error::Error for StoreTokenError {
     }
 }
 
+#[derive(thiserror::Error)]
 pub enum SubscribeError {
+    #[error("{0}")]
+    // `String` does not implement the `Error` trait so it cannot be returned in
+    // `Error::source`
     ValidationError(String),
-    PoolError(sqlx::Error),
-    InsertSubscriberError(sqlx::Error),
-    TransactionCommitError(sqlx::Error),
-    StoreTokenError(StoreTokenError),
-    SendEmailError(reqwest::Error),
-}
-
-impl From<reqwest::Error> for SubscribeError {
-    fn from(e: reqwest::Error) -> Self {
-        Self::SendEmailError(e)
-    }
-}
-
-impl From<StoreTokenError> for SubscribeError {
-    fn from(e: StoreTokenError) -> Self {
-        Self::StoreTokenError(e)
-    }
-}
-
-impl From<String> for SubscribeError {
-    fn from(e: String) -> Self {
-        Self::ValidationError(e)
-    }
+    #[error("Failed to acquire a Postgres connection from the pool.")]
+    // #[source] denotes what should be returned as root cause in Error::source
+    PoolError(#[source] sqlx::Error),
+    #[error("Failed to insert new subscriber in the database.")]
+    InsertSubscriberError(#[source] sqlx::Error),
+    #[error("Failed to store the confirmation token for a new subscriber.")]
+    TransactionCommitError(#[source] sqlx::Error),
+    #[error("Failed to commit SQL transaction to store a new subscriber.")]
+    // #[from] automatically derives an implementation of `From` for the type
+    // it is applied to and is also used as error source.
+    // e.g. `impl From<StoreTokenError> for SubscribeError { ... }`
+    StoreTokenError(#[from] StoreTokenError),
+    #[error("Failed to send a confirmation email.")]
+    SendEmailError(#[from] reqwest::Error),
 }
 
 impl std::fmt::Debug for SubscribeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         error_chain_fmt(self, f)
-    }
-}
-
-impl std::fmt::Display for SubscribeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SubscribeError::ValidationError(e) => write!(f, "{}", e),
-            SubscribeError::PoolError(_) => {
-                write!(f, "Failed to acquire a Postgres connection from the pool.")
-            }
-            SubscribeError::InsertSubscriberError(_) => {
-                write!(f, "Failed to insert new subscriber in the database.")
-            }
-            SubscribeError::TransactionCommitError(_) => write!(
-                f,
-                "Failed to commit SQL transaction to store a new subscriber."
-            ),
-            SubscribeError::StoreTokenError(_) => write!(
-                f,
-                "Failed to store the confirmation token for a new subscriber."
-            ),
-            SubscribeError::SendEmailError(_) => write!(f, "Failed to send a confirmation email."),
-        }
-    }
-}
-
-impl std::error::Error for SubscribeError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            SubscribeError::ValidationError(_) => None,
-            SubscribeError::PoolError(e) => Some(e),
-            SubscribeError::InsertSubscriberError(e) => Some(e),
-            SubscribeError::TransactionCommitError(e) => Some(e),
-            SubscribeError::StoreTokenError(e) => Some(e),
-            SubscribeError::SendEmailError(e) => Some(e),
-        }
     }
 }
 
@@ -130,21 +104,6 @@ impl ResponseError for SubscribeError {
             | SubscribeError::SendEmailError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
-}
-
-fn error_chain_fmt(
-    e: &impl std::error::Error,
-    f: &mut std::fmt::Formatter<'_>,
-) -> std::fmt::Result {
-    writeln!(f, "{}\n", e)?;
-    let mut current = e.source();
-
-    while let Some(cause) = current {
-        writeln!(f, "Caused by:\n\t{}", cause)?;
-        current = cause.source();
-    }
-
-    Ok(())
 }
 
 // This will create a span at the beginning of the function invocation and automatically
