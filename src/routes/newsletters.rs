@@ -68,9 +68,11 @@ pub async fn publish_newsletter(
                     })?;
             }
             Err(error) => {
-                tracing::warn!(error.cause_chain = ?error,
-                "Skipping a confirmed subscriber. \
-                Their stored contact details are invalid");
+                tracing::warn!(
+                    error.cause_chain = ?error,
+                    "Skipping a confirmed subscriber. \
+                    Their stored contact details are invalid"
+                );
             }
         }
     }
@@ -82,17 +84,12 @@ pub async fn publish_newsletter(
 async fn get_confirmed_subscribers(
     pool: &PgPool,
 ) -> Result<Vec<Result<ConfirmedSubscriber, anyhow::Error>>, anyhow::Error> {
-    struct Row {
-        email: String,
-    }
-
-    let rows = sqlx::query_as!(
-        Row,
+    let rows = sqlx::query!(
         r#"
-    SELECT email
-    FROM subscriptions
-    WHERE status = 'confirmed'
-    "#,
+        SELECT email
+        FROM subscriptions
+        WHERE status = 'confirmed'
+        "#,
     )
     .fetch_all(pool)
     .await?;
