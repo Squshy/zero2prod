@@ -186,12 +186,7 @@ pub async fn insert_subscriber(
         Utc::now()
     )
     .execute(transaction)
-    .await
-    .map_err(|e| {
-        tracing::error!("Failed to execute query: {:?}", e);
-        e
-        // ? to return early if the function failed
-    })?;
+    .await?;
 
     Ok(subscriber_id)
 }
