@@ -1,3 +1,4 @@
+use tokio::task::JoinHandle;
 use tracing::subscriber::set_global_default;
 use tracing::Subscriber;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
@@ -51,4 +52,16 @@ pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
     // `set_globabl_default` can be used by applications to specify
     // what subscriber should be used to process spans.
     set_global_default(subscriber).expect("Failed to set subscriber.");
+}
+
+pub fn spawn_blocking_with_tracing<F, R>(f: F) -> JoinHandle<R>
+where
+    F: FnOnce() -> R + Send + 'static,
+    R: Send + 'static,
+{
+    // Since we are moving this task to a different thread, tracing cannot see
+    // the span so we need to explicitly attach the current span to the newly
+    // spawned thread.
+    let current_span = tracing::Span::current();
+    tokio::task::spawn_blocking(move || current_span.in_scope(f))
 }
