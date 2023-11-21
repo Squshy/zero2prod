@@ -29,11 +29,16 @@ impl std::fmt::Debug for LoginError {
 }
 
 impl ResponseError for LoginError {
+    // Send user back to GET /login if auth fails
+    fn error_response(&self) -> HttpResponse {
+        let encoded_error = urlencoding::Encoded::new(self.to_string());
+        HttpResponse::build(self.status_code())
+            .insert_header((LOCATION, format!("/login?error={}", encoded_error)))
+            .finish()
+    }
+
     fn status_code(&self) -> StatusCode {
-        match self {
-            LoginError::AuthError(_) => StatusCode::UNAUTHORIZED,
-            LoginError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
+        StatusCode::SEE_OTHER
     }
 }
 
