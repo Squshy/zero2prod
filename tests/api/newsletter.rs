@@ -172,7 +172,7 @@ async fn non_existing_user_is_rejected() {
     assert_eq!(401, response.status().as_u16());
     assert_eq!(
         r#"Basic realm="publish""#,
-        response.headers()["WWW_Authenticate"]
+        response.headers()["WWW-AUTHENTICATE"]
     );
 }
 
@@ -203,6 +203,6 @@ async fn invalid_password_is_rejected() {
     assert_eq!(401, response.status().as_u16());
     assert_eq!(
         r#"Basic realm="publish""#,
-        response.headers()["WWW_Authenticate"]
+        response.headers()["WWW-AUTHENTICATE"]
     );
 }
