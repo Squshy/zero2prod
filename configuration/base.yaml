@@ -1,6 +1,6 @@
 application:
   port: 4000
-  hmac_secret: "long-and-cool-secret"
+  hmac_secret: "long-and-cool-secret-that-is-even-longer-than-before-thats-over-64-bytes"
 database:
   host: "localhost"
   port: 5432
