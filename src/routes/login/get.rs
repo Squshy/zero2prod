@@ -1,3 +1,4 @@
+use actix_web::cookie::Cookie;
 use actix_web::http::header::ContentType;
 use actix_web::{HttpRequest, HttpResponse};
 
@@ -9,7 +10,7 @@ pub async fn login_form(request: HttpRequest) -> HttpResponse {
         }
     };
 
-    HttpResponse::Ok()
+    let mut response = HttpResponse::Ok()
         .content_type(ContentType::html())
         .body(format!(
             r#"<!DOCTYPE html>
@@ -44,5 +45,11 @@ pub async fn login_form(request: HttpRequest) -> HttpResponse {
         </form>
     </body>
 </html>"#
-        ))
+        ));
+
+    response
+        // Sets the cookies `Max-Age` to be `0` for us
+        .add_removal_cookie(&Cookie::new("_flash", ""))
+        .unwrap();
+    response
 }
