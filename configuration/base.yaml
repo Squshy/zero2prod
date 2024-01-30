@@ -1,6 +1,7 @@
 application:
   port: 4000
   hmac_secret: "long-and-cool-secret-that-is-even-longer-than-before-thats-over-64-bytes"
+redis_uri: "redis://127.0.0.1:6379"
 database:
   host: "localhost"
   port: 5432
