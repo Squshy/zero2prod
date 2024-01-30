@@ -1,7 +1,7 @@
 use crate::authentication::Credentials;
 use crate::authentication::{validate_credentials, AuthError};
 use crate::domain::utils::error_chain_fmt;
-use actix_session::Session;
+use crate::session_state::TypedSession;
 use actix_web::error::InternalError;
 use actix_web::http::header::LOCATION;
 use actix_web::web;
@@ -34,7 +34,7 @@ impl std::fmt::Debug for LoginError {
 pub async fn login(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,
-    session: Session,
+    session: TypedSession,
 ) -> Result<HttpResponse, InternalError<LoginError>> {
     let credentials = Credentials {
         username: form.0.username,
@@ -50,7 +50,7 @@ pub async fn login(
             // Renew the session when the user logs in to prevent malicous attacks
             session.renew();
             session
-                .insert("user_id", user_id)
+                .insert_user_id(user_id)
                 .map_err(|e| login_redirect(LoginError::UnexpectedError(e.into())))?;
             Ok(HttpResponse::SeeOther()
                 .insert_header((LOCATION, "/admin/dashboard"))
