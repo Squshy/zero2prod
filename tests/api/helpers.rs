@@ -193,10 +193,23 @@ impl TestApp {
             .await
             .expect("Failed to execute request.")
     }
+
+    pub async fn post_logout(&self) -> reqwest::Response {
+        self.api_client
+            .post(&format!("{}/admin/logout", &self.address))
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
 }
 
 pub fn assert_is_redirect_to(response: &reqwest::Response, location: &str) {
-    assert_eq!(response.status().as_u16(), 303);
+    assert_eq!(
+        response.status().as_u16(),
+        303,
+        "Could not redirect to {}",
+        location
+    );
     assert_eq!(response.headers().get("Location").unwrap(), location);
 }
 
