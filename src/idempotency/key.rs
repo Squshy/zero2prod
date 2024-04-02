@@ -1,7 +1,7 @@
 #[derive(Debug)]
-pub struct IdepmotencyKey(String);
+pub struct IdempotencyKey(String);
 
-impl TryFrom<String> for IdepmotencyKey {
+impl TryFrom<String> for IdempotencyKey {
     type Error = anyhow::Error;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -18,13 +18,13 @@ impl TryFrom<String> for IdepmotencyKey {
     }
 }
 
-impl From<IdepmotencyKey> for String {
-    fn from(value: IdepmotencyKey) -> Self {
+impl From<IdempotencyKey> for String {
+    fn from(value: IdempotencyKey) -> Self {
         value.0
     }
 }
 
-impl AsRef<str> for IdepmotencyKey {
+impl AsRef<str> for IdempotencyKey {
     fn as_ref(&self) -> &str {
         &self.0
     }
